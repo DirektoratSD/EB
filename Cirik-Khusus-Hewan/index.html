@@ -1,0 +1,1615 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Cerdas Ciri Khusus Hewan</title>
+    <link rel="stylesheet" href="asset/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" onerror="this.disabled=true;"> 
+    <link rel="icon" type="image/x-icon" href="asset/favicon.ico">    
+    
+    <style>
+        :root {
+            --primary-color: #d9534f; 
+            --success-color: #5cb85c; 
+            --warning-color: #f0ad4e; 
+            --info-color: #5bc0de;    
+            --bg-color: #fdfaf5; 
+            --white: #ffffff;
+            --dark-text: #333333;
+            --black: #000000;
+            --danger-color: #d9534f;
+            --font-title: 'Arial', 'Helvetica', sans-serif;
+            --font-body: 'Arial', 'Helvetica', sans-serif;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: var(--font-body);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #e1f5fe; 
+            color: var(--dark-text);
+            -webkit-user-select: none;
+            user-select: none;
+            overflow: hidden;
+        }
+
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            background-color: #0d0d0d;  
+        }
+
+        #game-container {
+            width: 95%;
+            max-width: 1500px;
+            height: 95vh;
+            max-height: 4000px;
+            background: var(--bg-color);
+            border-radius: 30px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1), 0 6px 6px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 20px solid var(--white);
+            position: relative;  
+            z-index: 1;
+            transition: width 0.3s, height 0.3s, border-radius 0.3s;
+        }
+
+        /* === FIX: Style khusus saat Mode Fullscreen aktif === */
+        #game-container:fullscreen,
+        #game-container:-webkit-full-screen,
+        #game-container:-moz-full-screen,
+        #game-container:-ms-fullscreen {
+            width: 100vw !important;
+            height: 100vh !important;
+            max-width: none !important;
+            max-height: none !important;
+            border: none !important;
+            border-radius: 0 !important;
+            margin: 0 !important;
+        }
+
+        #controls-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000; 
+            display: flex;
+            gap: 10px;
+        }
+
+        .control-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: none;
+            background-color: var(--white);
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.1s, background-color 0.2s;
+            border-bottom: 3px solid #ccc;
+        }
+
+        .control-btn:active {
+            transform: translateY(2px);
+            border-bottom-width: 0;
+        }
+
+        .control-btn:hover {
+            background-color: #f0f0f0;
+        }
+
+        /* Warna khusus untuk tombol profil di atas */
+        #profile-toggle {
+            color: #2ecc71; /* Greenish for profile */
+        }
+
+        .screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            height: 100%;
+            opacity: 1;
+            transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+            position: absolute;
+            width: 100%; top: 0; left: 0;
+            z-index: 2; 
+            overflow: hidden; 
+        }
+        .screen.hidden {
+            opacity: 0;
+            transform: scale(0.95);
+            pointer-events: none;
+        }
+        .screen h1, .screen p, .screen .menu-grid, .screen .btn, .screen .form-group {
+            position: relative; 
+            z-index: 2;
+        }
+        .screen h1 {
+            font-family: var(--font-title);
+            font-weight: bold; 
+            font-size: clamp(2rem, 6vw, 4rem);
+            color: var(--primary-color);
+            text-shadow:
+                -2px -2px 0 var(--white),
+                2px -2px 0 var(--white),
+                -2px 2px 0 var(--white),
+                2px 2px 0 var(--white),
+                0 -2px 0 var(--white),
+                0 2px 0 var(--white),
+                -2px 0 0 var(--white),
+                2px 0 0 var(--white),
+                -3px -3px 0 var(--white),
+                3px -3px 0 var(--white),
+                -3px 3px 0 var(--white),
+                3px 3px 0 var(--white),
+                4px 4px 0 var(--black); 
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+        .screen p {
+            font-size: clamp(1rem, 3vw, 1.2rem);
+            margin-bottom: 1.5rem;
+            max-width: 1000px;
+            background-color: rgba(255, 255, 255, 0.5); 
+            padding: 0.5rem;
+            border-radius: 10px;
+        }
+
+        /* --- INPUT SCREEN STYLES --- */
+        .form-container {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            position: relative;
+            z-index: 10;
+        }
+        .form-group {
+            text-align: left;
+            width: 100%;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 1rem;
+            border: 3px solid #ddd;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            outline: none;
+            transition: border-color 0.3s;
+            font-family: var(--font-body);
+        }
+        .form-group input:focus {
+            border-color: var(--info-color);
+        }
+        .error-message {
+            color: var(--danger-color);
+            font-size: 0.9rem;
+            margin-top: 5px;
+            display: none;
+            font-weight: bold;
+        }
+
+        .btn {
+            font-family: var(--font-title);
+            font-weight: bold;
+            padding: 1rem 2.5rem;
+            font-size: clamp(1.2rem, 4vw, 1.5rem);
+            cursor: pointer;
+            border: none;
+            color: var(--black);
+            border-radius: 15px;
+            background: var(--primary-color);
+            border-bottom: 6px solid #c9302c;
+            transition: all 0.1s ease-in-out;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            white-space: nowrap; 
+        }
+        .btn:hover { transform: translateY(-2px); }
+        .btn:active { transform: translateY(2px); border-bottom-width: 2px; }
+        #retry-button { background: var(--success-color); border-bottom-color: #449d44; }
+        #certificate-btn { background: #5bc0de; border-bottom-color: #31b0d5; margin-top: 10px; color: white; }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* Kembali ke 4 kolom */
+            gap: 1rem;
+            width: 100%;
+            max-width: 700px;
+            margin-bottom: 2rem;
+            justify-items: center;
+        }
+        .btn-small {
+            font-size: 1rem;
+            padding: 0.75rem 1rem;
+            background-color: var(--info-color);
+            border-bottom: 4px solid #31b0d5;
+            white-space: normal; 
+            width: 100%;
+        }
+        .btn-small:active { border-bottom-width: 2px; }
+        
+        /* Tombol Hak Cipta di menu grid */
+        #hakcipta-btn {
+            background-color: #f0ad4e;
+            border-bottom-color: #eea236;
+        }
+
+		#petunjukModal .modal-content p,
+		#tujuanModal .modal-content p,
+		#petunjukModal .modal-content h2,
+		#tujuanModal .modal-content h2,
+        #materiModal .modal-content h2,
+        #materiModal .modal-content h3,
+        #materiModal .modal-content p { color: #000000 !important; }
+
+        #game-screen { justify-content: flex-start; }
+        #hud {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            padding: 0.75rem 1.25rem;
+            font-family: var(--font-title);
+            font-weight: bold;
+            font-size: 1.3rem;
+            background-color: var(--white);
+            border-radius: 15px;
+            margin-bottom: 1rem;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+        #hud span { color: var(--primary-color); }
+        #timer-display.low-time { color: var(--danger-color); animation: pulse 1s infinite; }
+        
+        #game-area { flex-grow: 1; width: 100%; position: relative; }
+        .level-content { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; }
+        .level-content h2 { font-family: var(--font-title); font-weight: bold; margin-bottom: 1rem; font-size: 1.5rem; color: var(--dark-text); text-align: center;}
+
+        .matching-container { 
+            display: flex; 
+            justify-content: center; 
+            gap: clamp(1rem, 5vw, 2rem); 
+            width: 100%; 
+            flex-grow: 1; 
+            align-items: center; 
+        }
+        .column { display: flex; flex-direction: column; gap: 1rem; width: 45%; align-items: center; }
+        
+        .animal-box, .feature-box {
+            width: clamp(110px, 100%, 280px); 
+            height: clamp(80px, 15vw, 120px); 
+            border: 3px solid #ced4da;
+            border-radius: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-color: var(--white);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 5px; 
+            max-width: 100%; 
+        }
+        
+        .feature-box { 
+            font-family: var(--font-title); 
+            font-weight: bold; 
+            font-size: clamp(0.8rem, 3vw, 1.2rem); 
+            text-align: center;
+            line-height: 1.2; 
+        }
+        
+        .animal-box img { width: 100%; height: 100%; object-fit: contain; }
+        .selected { border-color: var(--warning-color); transform: scale(1.08); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
+        .matched { opacity: 0.5; background-color: #dff0d8; border-color: var(--success-color); pointer-events: none; transition: opacity 0.5s, background-color 0.5s; }
+        .wrong { animation: shake 0.5s; }
+        
+        #level-2 p { font-size: 1.2rem; }
+        #target-feature-name { color: var(--primary-color); font-weight: 700; }
+        #rain-area { width: 100%; height: 100%; overflow: hidden; position: relative; background: linear-gradient(#87ceeb, #f0f8ff); border-radius: 16px; margin-top: 10px; }
+        .falling-animal { position: absolute; width: clamp(80px, 18vw, 120px); height: clamp(80px, 18vw, 120px); cursor: pointer; animation: fall linear forwards; will-change: top; transition: transform 0.3s ease, opacity 0.3s ease; }
+        .falling-animal.caught { transform: scale(0); opacity: 0; }
+        .falling-animal img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+
+        #level-3 { justify-content: center; }
+        #memory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: clamp(10px, 2.5vw, 20px); 
+            width: 100%;
+            max-width: 900px;
+            padding: 15px;
+            background-color: rgba(0, 0, 0, 0.03);
+            border-radius: 16px;
+            perspective: 1200px;
+        }
+        .card {
+            aspect-ratio: 1 / 1;
+            position: relative;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.6s, box-shadow 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .card:hover:not(.matched) { transform: translateY(-5px); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+        .card.flipped { transform: rotateY(180deg); }
+        .card.flipped:not(.matched):hover { transform: rotateY(180deg) translateY(-5px); }
+        
+        .card-face { position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden; display: flex; justify-content: center; align-items: center; border-radius: 12px; }
+        .card-front {
+            background: linear-gradient(135deg, var(--warning-color), #ffcc80);
+            font-family: var(--font-title);
+            font-weight: bold;
+            font-size: clamp(2rem, 5vw, 4rem); 
+            color: white;
+            transition: background 0.5s;
+            text-shadow: 2px 2px 3px rgba(0,0,0,0.2);
+        }
+        .card-back { 
+            background-color: #fff8e1; 
+            transform: rotateY(180deg); 
+            padding: 5px; 
+            font-family: var(--font-title);
+            font-weight: bold;
+            font-size: clamp(1rem, 2.5vw, 1.8rem); 
+            color: var(--dark-text);
+        }
+        .card-back img { width: 100%; height: 100%; object-fit: contain; }
+        .card.matched { pointer-events: none; }
+        .card.matched .card-front { background: linear-gradient(135deg, var(--success-color), #81c784); }
+        .card.matched .card-front svg { width: 50%; height: 50%; }
+
+        #level-4 { justify-content: flex-start; }
+        #level-4 h2 { margin-top: 2rem; margin-bottom: 2rem; font-size: clamp(1.8rem, 4vw, 2.5rem); }
+        #level-4 .question-text { font-size: clamp(1rem, 2.8vw, 1.6rem); margin-bottom: 2rem; max-width: 1200px; line-height: 1.5; padding: 0 1rem; }
+        #level-4 .options-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; width: 100%; max-width: 800px; padding: 1rem; }
+
+        @media (min-width: 768px) { #level-4 .options-grid { grid-template-columns: repeat(4, 1fr); } }
+
+        #level-4 .option-btn {
+            font-family: var(--font-body); 
+            padding: 0.8rem 1.5rem;
+            font-size: clamp(0.9em, 2vw, 1.1em);
+            cursor: pointer;
+            border: none;
+            color: var(--dark-text);
+            border-radius: 12px;
+            background: #ffe0b2; 
+            border-bottom: 5px solid #ffcc80; 
+            transition: all 0.1s ease-in-out;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex; 
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100px;
+            text-align: center;
+        }
+        #level-4 .option-btn img { max-width: 80px; max-height: 80px; margin-bottom: 5px; object-fit: contain; }
+        #level-4 .option-btn.correct { background-color: var(--success-color); border-bottom-color: #449d44; color: var(--white); }
+        #level-4 .option-btn.incorrect { background-color: var(--danger-color); border-bottom-color: #ac2925; color: var(--white); }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 1000;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay:not(.hidden) { opacity: 1; pointer-events: auto; }
+        .modal-content {
+            background: var(--white);
+            padding: 2rem; border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            position: relative;
+            max-width: 90%; width: 1000px;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            text-align: left;
+        }
+        .modal-overlay:not(.hidden) .modal-content { transform: scale(1); }
+        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 2.5rem; color: #aaa; cursor: pointer; font-weight: bold; line-height: 1; }
+        .close-modal:hover { color: var(--dark-text); }
+        .modal-content h2 { font-family: var(--font-title); font-weight: bold; margin-bottom: 1rem; color: var(--primary-color);}
+        .modal-content p { font-size: 1rem; margin-bottom: 0.75rem; }
+
+        .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; width: 100%; background: #000; border-radius: 10px; }
+        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+        .materi-list {
+            max-height: 60vh;
+            overflow-y: auto;
+            padding-right: 15px;
+            margin-top: 15px;
+        }
+        .materi-list::-webkit-scrollbar { width: 8px; }
+        .materi-list::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .materi-list::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+        .materi-list::-webkit-scrollbar-thumb:hover { background: #bbb; }
+
+        .materi-item {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .materi-item:last-child { border-bottom: none; }
+        .materi-item h3 {
+            color: var(--primary-color);
+            margin-bottom: 8px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .materi-item h3 i { font-size: 1rem; }
+        .materi-item p { margin-left: 25px; line-height: 1.5; color: #444; }
+
+        /* --- STYLES FOR HAK CIPTA MODAL --- */
+        #hakCiptaModal .modal-content {
+            background-color: #f8faff;
+            border: 2px solid #e1e8ed;
+            color: #333;
+            max-width: 800px;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+            padding: 30px;
+        }
+        
+        #hakCiptaModal .logo-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        #hakCiptaModal .logo-img {
+            width: 80px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+        
+        #hakCiptaModal h2 {
+            color: #000;
+            text-align: center;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        
+        #hakCiptaModal .sub-header {
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+        
+        #hakCiptaModal .sub-sub-header {
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.8rem;
+            margin-bottom: 20px;
+            max-width: 80%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        #hakCiptaModal hr {
+            border: 0;
+            border-top: 2px solid #d4a017; /* Gold line */
+            margin: 10px 0 20px 0;
+        }
+        
+        #hakCiptaModal .info-grid {
+            display: grid;
+            grid-template-columns: 180px 1fr;
+            gap: 10px;
+            font-size: 0.95rem;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        #hakCiptaModal .label {
+            font-weight: bold;
+            color: #2c82c9;
+        }
+        
+        #hakCiptaModal .value {
+            color: #444;
+        }
+        
+        #hakCiptaModal .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            opacity: 0.05;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        #hakCiptaModal .footer-info {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #555;
+            position: relative;
+            z-index: 2;
+        }
+        
+        #hakCiptaModal .footer-row {
+            display: grid;
+            grid-template-columns: 180px 1fr;
+            gap: 10px;
+        }
+        
+        #hakCiptaModal .close-modal {
+            color: #d9534f;
+            opacity: 0.7;
+        }
+        #hakCiptaModal .close-modal:hover {
+            opacity: 1;
+        }
+        
+        /* Styles Profil Modal */
+        .profile-modal { background: linear-gradient(135deg, #f1c40f, #2ecc71); color: white; overflow: hidden; }
+        .modal-main-content { display: flex; align-items: center; }
+        .profile-pic-container { width: 150px; height: 250px; margin-right: 25px; border-radius: 50%; overflow: hidden; flex-shrink: 0; }
+        .profile-pic-container img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
+        .profile-pic-container img:hover { transform: scale(1.1); }
+        .profile-text h2 { font-family: var(--font-title); font-weight: bold; font-size: 1.8em; color: white; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4); }
+        .profile-text p { font-size: 0.9em; margin: 5px 0; }
+        .profile-text .kontak { font-weight: bold; margin-top: 15px; }
+        .social-icons { font-size: 1.8em; display: flex; gap: 20px; }
+        .social-icons a { color: white; text-decoration: none; transition: transform 0.2s; }
+        .social-icons a:hover { transform: scale(1.2); }
+        .profile-bg-img { position: absolute; right: -30px; top: -30px; height: 130%; opacity: 0.6; pointer-events: none; z-index: -1; }
+        .profile-modal .close-modal { color: white; }
+
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        @keyframes fall { from { top: -80px; transform: rotate(0deg); } to { top: 110%; transform: rotate(360deg); } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        
+        #animal-background-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 1; 
+        }
+        .animal {  
+            position: absolute;  
+            animation: float 15s infinite ease-in-out;  
+            user-select: none;  
+            cursor: default;  
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);  
+            z-index: 1;  
+            top: calc(var(--pos-y) * 1vh);  
+        }  
+            
+        @keyframes float {  
+            0%, 100% {   
+            transform:   
+                translateX(0)   
+                translateY(calc(var(--float-y) * 1px))  
+                rotate(0deg)   
+                scale(var(--scale-start));  
+            left: var(--start-x);  
+            }  
+            50% {  
+            transform:   
+                translateX(calc(var(--float-x) * 1px))  
+                translateY(0)  
+                rotate(calc(var(--rotation) * 1deg))   
+                scale(var(--scale-mid));  
+            }  
+        }  
+            
+        .animal:hover {  
+            animation-play-state: paused;  
+            transform: scale(1.5) !important;  
+            z-index: 10;  
+            filter: drop-shadow(0 0 8px rgba(255,255,255,0.8));  
+        }
+
+        @media (max-width: 600px) {
+            #game-container {
+                border-width: 10px;
+                border-radius: 15px;
+            }
+            .screen { padding: 1rem; }
+            .menu-grid {
+                grid-template-columns: repeat(2, 1fr); 
+            }
+            .btn {
+                padding: 0.8rem 1.5rem;
+            }
+            #memory-grid {
+                gap: 5px; 
+            }
+            .level-content h2 {
+                font-size: 1.2rem;
+            }
+            /* Modal Responsive */
+            #hakCiptaModal .info-grid, 
+            #hakCiptaModal .footer-row {
+                grid-template-columns: 1fr;
+            }
+            #hakCiptaModal .label {
+                margin-top: 10px;
+                color: #2c82c9;
+            }
+            /* Profile Modal Responsive */
+            .modal-main-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            .profile-pic-container {
+                margin-right: 0;
+                margin-bottom: 15px;
+                width: 120px;
+                height: 120px;
+            }
+            .social-icons {
+                justify-content: center;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <!-- AUDIO OFFLINE DARI FOLDER ASSET -->
+    <audio id="bg-music-audio" loop>
+        <source src="asset/bgMusic.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="correct-audio">
+        <source src="asset/Correct.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="wrong-audio">
+        <source src="asset/Wrong.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="winner-audio">
+        <source src="asset/Winner.wav" type="audio/wav">
+    </audio>
+    <audio id="hover-audio">
+        <source src="asset/Klik.wav" type="audio/wav">
+    </audio>
+
+    <div id="game-container">
+        
+        <div id="controls-container">
+            <button id="music-toggle" class="control-btn" title="Musik"><i class="fas fa-volume-up"></i></button>
+            <button id="fullscreen-toggle" class="control-btn" title="Layar Penuh"><i class="fas fa-expand"></i></button>
+            <!-- BUTTON PROFIL PENGEMBANG (PINDAH KE SINI SESUAI INSTRUKSI) -->
+            <button id="profile-toggle" class="control-btn" title="Profil Pengembang"><i class="fas fa-user"></i></button>
+        </div>
+
+        <div id="particles-js"></div>
+        
+        <!-- === NEW: INPUT SCREEN === -->
+        <div id="input-screen" class="screen">
+            <div id="animal-bg-input"></div> <!-- Background for input screen -->
+            <h1>Selamat Datang!</h1>
+            <p>Silakan isi data diri sebelum memulai petualangan.</p>
+            <div class="form-container">
+                <div class="form-group">
+                    <label for="student-name">Nama Murid:</label>
+                    <input type="text" id="student-name" placeholder="Tulis namamu disini..." autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="school-name">Nama Sekolah:</label>
+                    <input type="text" id="school-name" placeholder="Tulis nama sekolahmu..." autocomplete="off">
+                </div>
+                <p id="input-error" class="error-message">Mohon isi semua data dengan lengkap!</p>
+                <button id="submit-data-btn" class="btn">LANJUT <i class="fas fa-arrow-right"></i></button>
+            </div>
+        </div>
+
+        <div id="start-screen" class="screen hidden">
+            <div id="animal-background-container"></div>
+            <h1>Hewan dan Cirinya</h1>
+            <p>🦉 Ayo kenali berbagai hewan dan ciri khususnya! 🦉</p>
+            <div class="menu-grid">
+                <button id="petunjuk-btn" class="btn btn-small">🦇 Petunjuk 🦇</button>
+                <button id="tujuan-btn" class="btn btn-small">🐫Tujuan🐫</button>
+                <button id="materi-btn" class="btn btn-small">🦋Materi🦋</button>
+                <!-- BUTTON PENGEMBANG DIGANTI JADI HAK CIPTA (SESUAI INSTRUKSI) -->
+                <button id="hakcipta-btn" class="btn btn-small">⭐Hak Cipta⭐</button>
+            </div>
+            <button id="start-button" class="btn">Mulai!</button>
+        </div>
+
+        <div id="game-screen" class="screen hidden">
+            <div id="hud">
+                <p>Level: <span id="level-display">1</span></p>
+                <p>Waktu: <span id="timer-display">20</span></p>
+            </div>
+            <div id="game-area">
+                <div id="level-1" class="level-content" style="display: none;">
+                    <h2>Level 1: Jodohkan Hewan & Ciri Khusus!</h2>
+                    <div class="matching-container">
+                        <div id="animals-column" class="column"></div>
+                        <div id="features-column" class="column"></div>
+                    </div>
+                </div>
+                <div id="level-2" class="level-content" style="display: none;">
+                    <h2>Level 2: Tangkap Hewan yang Tepat!</h2>
+                    <p>Klik hewan yang memiliki ciri khusus: <strong id="target-feature-name"></strong></p>
+                    <div id="rain-area"></div>
+                </div>
+                <div id="level-3" class="level-content" style="display: none;">
+                    <h2>Level 3: Jodohkan Hewan & Ciri Khususnya!</h2>
+                    <div id="memory-grid"></div>
+                </div>
+                <div id="level-4" class="level-content" style="display: none;">
+                    <h2>Level 4: Tebak Ciri Khusus Hewan!</h2>
+                    <p class="question-text" id="level4-question-text"></p>
+                    <div id="level4-options-grid" class="options-grid"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="end-screen" class="screen hidden">
+            <h1 id="end-title"></h1>
+            <p id="end-message"></p>
+            <button id="retry-button" class="btn">Main Lagi</button>
+            <!-- BUTTON DOWNLOAD SERTIFIKAT -->
+            <button id="certificate-btn" class="btn hidden"><i class="fas fa-certificate"></i> Download Sertifikat</button>
+            <br>
+            <a href="https://sites.google.com/view/bangbinedu/home" target="_blank"><button class="btn" ><i style="color: white; text-decoration: none;"><i class="fa fa-home"></i></button></a>
+        </div>
+    </div>
+
+    <!-- MODAL (Isi modal sama seperti sebelumnya) -->
+    <div id="petunjukModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <span class="close-modal">×</span>
+            <h2>Petunjuk Permainan</h2>
+            <p><strong>Level 1:</strong> Klik satu gambar hewan, lalu klik ciri khususnya yang benar.</p>
+            <p><strong>Level 2:</strong> Perhatikan ciri khusus yang diminta, lalu klik hewan yang jatuh yang memiliki ciri khusus tersebut.</p>
+            <p><strong>Level 3:</strong> Buka dua kartu untuk menemukan pasangan gambar hewan dan ciri khususnya yang benar.</p>
+            <p><strong>Level 4:</strong> Jawablah pertanyaan pilihan ganda mengenai hewan dan ciri khususnya.</p>
+        </div>
+    </div>
+
+    <div id="tujuanModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <span class="close-modal">×</span>
+            <h2>Tujuan Pembelajaran</h2>
+            <p>1. Siswa dapat mengenali berbagai jenis hewan.</p>
+            <p>2. Siswa dapat menyebutkan ciri khusus hewan.</p>
+            <p>3. Siswa dapat mengelompokkan hewan berdasarkan ciri khususnya.</p>
+            <p>4. Siswa dapat memahami fungsi ciri khusus hewan.</p>
+        </div>
+    </div>
+    
+    <div id="materiModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <span class="close-modal">×</span>
+            <h2>Materi Ciri Khusus Hewan</h2>
+            <div class="materi-list">
+                <div class="materi-item">
+                    <h3><i class="fas fa-crow"></i> Kelelawar - Ekolokasi</h3>
+                    <p>Kelelawar memiliki kemampuan <strong>Ekolokasi</strong>, yaitu menggunakan pantulan bunyi (ultrasonik) untuk mendeteksi benda atau mangsa di sekitarnya dalam kegelapan.</p>
+                </div>
+                <div class="materi-item">
+                    <h3><i class="fas fa-feather"></i> Bebek - Kaki Berselaput</h3>
+                    <p>Jari kaki bebek dihubungkan oleh <strong>Selaput</strong> yang membantunya berenang di air dan berjalan di atas tanah berlumpur agar tidak terperosok.</p>
+                </div>
+                <div class="materi-item">
+                    <h3><i class="fas fa-worm"></i> Cicak - Autotomi</h3>
+                    <p>Cicak memiliki kemampuan <strong>Autotomi</strong>, yaitu memutuskan ekornya saat merasa terancam untuk mengelabui musuh agar bisa melarikan diri.</p>
+                </div>
+                <div class="materi-item">
+                    <h3><i class="fas fa-horse"></i> Unta - Punuk</h3>
+                    <p>Unta memiliki <strong>Punuk</strong> di punggungnya yang berisi lemak. Lemak ini berfungsi sebagai cadangan makanan dan energi saat unta berada di gurun pasir yang jarang makanan.</p>
+                </div>
+                <div class="materi-item">
+                    <h3><i class="fas fa-frog"></i> Bunglon - Mimikri</h3>
+                    <p>Bunglon dapat mengubah warna kulitnya sesuai dengan lingkungan tempat ia berada. Kemampuan ini disebut <strong>Mimikri</strong>, tujuannya untuk mengelabui musuh atau mangsa.</p>
+                </div>
+                <div class="materi-item">
+                    <h3><i class="fas fa-water"></i> Cumi-cumi - Kantong Tinta</h3>
+                    <p>Cumi-cumi memiliki <strong>Kantong Tinta</strong> yang akan disemburkan saat ia terancam. Cairan tinta hitam ini akan mengeruhkan air sehingga cumi-cumi bisa kabur dari pemangsa.</p>
+                </div>
+                <div class="materi-item">
+                    <h3><i class="fas fa-paw"></i> Landak - Rambut Duri</h3>
+                    <p>Landak memiliki tubuh yang ditutupi oleh <strong>Rambut Duri</strong> yang tajam dan kaku. Duri ini berfungsi sebagai alat pertahanan diri dari serangan predator.</p>
+                </div>
+                <div class="materi-item">
+                    <h3><i class="fas fa-frog"></i> Katak Glasfrog - Tubuh Transparan</h3>
+                    <p>Katak Kaca (Glasfrog) memiliki kulit perut yang <strong>Transparan</strong> (tembus pandang). Ini membantu mereka menyamar (kamuflase) agar sulit dilihat oleh pemangsa.</p>
+                </div>
+                <div class="materi-item">
+                    <h3><i class="fas fa-glasses"></i> Burung Hantu - Mata Tajam</h3>
+                    <p>Burung hantu memiliki <strong>Penglihatan Tajam</strong> dan pendengaran yang sangat peka di malam hari untuk berburu mangsa dalam kegelapan.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL HAK CIPTA (Data Kemdikbud) -->
+    <div id="hakCiptaModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <span class="close-modal">×</span>
+            <!-- Watermark Background -->
+            <img src="https://upload.wikimedia.org/wikipedia/commons/b/b3/Lambang_Kemdikbud.png" alt="Watermark" class="watermark">
+            
+            <div class="logo-container">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/b/b3/Lambang_Kemdikbud.png" alt="Logo Tut Wuri Handayani" class="logo-img">
+                <h2>DIREKTORAT SEKOLAH DASAR</h2>
+                <div class="sub-header">KEMENTERIAN PENDIDIKAN DASAR DAN MENENGAH</div>
+                <div class="sub-sub-header">DIREKTORAT JENDERAL PENDIDIKAN ANAK USIA DINI, PENDIDIKAN DASAR DAN PENDIDIKAN MENENGAH</div>
+            </div>
+            
+            <hr>
+            
+            <div class="info-grid">
+                <div class="label">Pengarah</div>
+                <div class="value">: Moch. Salim Somad, S.Kom., M.Pd., Direktorat Sekolah Dasar</div>
+                
+                <div class="label">Penanggung Jawab</div>
+                <div class="value">: Lanny Anggraini, S.Pd., M.A., Direktorat Sekolah Dasar</div>
+                
+                <div class="label">Pengembang</div>
+                <div class="value">: Edi Brata, M.Pd</div>
+                
+                <div class="label">Pengkaji Materi</div>
+                <div class="value">: Kurator, MBG</div>
+                
+                <div class="label">Pengkaji Media</div>
+                <div class="value">
+                    : 1. Muh. Noor Ginanjar Jaelani, S.Pd., Direktorat Sekolah Dasar<br>
+                    &nbsp;&nbsp;2. Ine Rahmawati, S.Pd., M.Si., Direktorat Sekolah Dasar
+                </div>
+            </div>
+            
+            <div class="footer-info">
+                <div class="footer-row">
+                    <div class="label">Diterbitkan oleh</div>
+                    <div class="value">
+                        : Direktorat Sekolah Dasar<br>
+                        Direktorat Jenderal Pendidikan Anak Usia Dini, Pendidikan Dasar, dan Pendidikan Menengah<br>
+                        Kementerian Pendidikan Dasar dan Menengah<br>
+                        Tahun 2025
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PROFIL (Pengembang asli) -->
+    <div id="profilModal" class="modal-overlay hidden">
+        <div class="modal-content profile-modal">
+            <span class="close-modal">×</span>
+            <div class="modal-main-content">
+                <div class="profile-pic-container">
+                    <img id="profileImage" src="asset/EB.png" alt="Foto Profil">
+                </div>
+                <div class="profile-text">
+                    <h2>EDI BRATA, M.Pd</h2>
+                    <p class="kontak">Kontak:</p>
+                    <div class="social-icons">
+                        <a href="https://www.facebook.com/edibrata/" target="_blank"><i class="fab fa-facebook"></i></a>
+                        <a href="https://www.youtube.com/@eduonlineeb" target="_blank"><i class="fab fa-youtube"></i></a>
+                        <a href="https://wa.me/6287773949015" target="_blank"><i class="fab fa-whatsapp"></i></a>
+                    </div>
+                </div>
+            </div>
+            <img src="asset/EB.png" alt="Background" class="profile-bg-img">
+        </div>
+    </div>
+
+    <script src="asset/particles.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/particles.js" onerror="this.disabled=true;"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const musicToggleBtn = document.getElementById('music-toggle');
+            const fullscreenToggleBtn = document.getElementById('fullscreen-toggle');
+            const profileToggleBtn = document.getElementById('profile-toggle');
+            const gameContainer = document.getElementById('game-container');
+            const bgMusic = document.getElementById('bg-music-audio');
+            const correctSound = document.getElementById('correct-audio');
+            const wrongSound = document.getElementById('wrong-audio');
+            const winnerSound = document.getElementById('winner-audio');
+            const hoverSound = document.getElementById('hover-audio');
+            function playSound(audioEl) {
+                if(audioEl) {
+                    audioEl.currentTime = 0;
+                    audioEl.play().catch(e => console.log("Audio play blocked/error:", e));
+                }
+            }
+
+            // --- Toggle Musik ---
+            musicToggleBtn.addEventListener('click', () => {
+                if (bgMusic.paused) {
+                    bgMusic.play().catch(e => console.log("Playback prevented:", e));
+                    musicToggleBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+                } else {
+                    bgMusic.pause();
+                    musicToggleBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+                }
+            });
+
+            // --- Fullscreen Logic ---
+            function getFullscreenElement() {
+                return document.fullscreenElement || 
+                       document.webkitFullscreenElement || 
+                       document.mozFullScreenElement || 
+                       document.msFullscreenElement;
+            }
+
+            fullscreenToggleBtn.addEventListener('click', () => {
+                const isFs = getFullscreenElement();
+                if (!isFs) {
+                    if (gameContainer.requestFullscreen) gameContainer.requestFullscreen();
+                    else if (gameContainer.mozRequestFullScreen) gameContainer.mozRequestFullScreen();
+                    else if (gameContainer.webkitRequestFullscreen) gameContainer.webkitRequestFullscreen();
+                    else if (gameContainer.msRequestFullscreen) gameContainer.msRequestFullscreen();
+                } else {
+                    if (document.exitFullscreen) document.exitFullscreen();
+                    else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
+                    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                    else if (document.msExitFullscreen) document.msExitFullscreen();
+                }
+            });
+
+            function updateFullscreenIcon() {
+                if (getFullscreenElement()) {
+                    fullscreenToggleBtn.innerHTML = '<i class="fas fa-compress"></i>';
+                } else {
+                    fullscreenToggleBtn.innerHTML = '<i class="fas fa-expand"></i>';
+                }
+            }
+            document.addEventListener('fullscreenchange', updateFullscreenIcon);
+            document.addEventListener('webkitfullscreenchange', updateFullscreenIcon);
+            document.addEventListener('mozfullscreenchange', updateFullscreenIcon);
+            document.addEventListener('MSFullscreenChange', updateFullscreenIcon);
+
+            function attachHoverSound() {
+                const interactiveElements = document.querySelectorAll('button, .animal-box, .feature-box, .card, .falling-animal');
+                interactiveElements.forEach(el => {
+                    if (!el.dataset.hasHoverSound) {
+                        el.addEventListener('mouseenter', () => {
+                            playSound(hoverSound);
+                        });
+                        el.dataset.hasHoverSound = "true";
+                    }
+                });
+            }
+            if (typeof particlesJS !== 'undefined') {
+                particlesJS("particles-js", {
+                    particles: {
+                        number: { value: 100 },
+                        shape: { type: "circle" },
+                        opacity: { value: 0.7 },
+                        size: { value: 3 }
+                    },
+                    interactivity: {
+                        events: { onhover: { enable: true, mode: "repulse" } }
+                    }
+                });
+            }
+
+            const animals = [
+                { name: 'Kelelawar', specialFeature: 'Ekolokasi', img: '<img src="asset/Kelelawar.png">' },
+                { name: 'Bebek', specialFeature: 'Kaki Berselaput', img: '<img src="asset/Bebek.gif">' },
+                { name: 'Cicak', specialFeature: 'Autotomi', img: '<img src="asset/Cicak.png">' },
+                { name: 'Unta', specialFeature: 'Punuk', img: '<img src="asset/Unta.png">' },
+                { name: 'Bunglon', specialFeature: 'Mimikri', img: '<img src="asset/Bunglon.png" alt="Bunglon">' },
+                { name: 'Cumi-cumi', specialFeature: 'Kantong Tinta', img: '<img src="asset/Cumi.png">' },
+                { name: 'Landak', specialFeature: 'Rambut Duri', img: '<img src="asset/Landak.png">' },
+                { name: 'Katak Glasfrog', specialFeature: 'Tubuh Transparan', img: '<img src="asset/Katak.png">' },
+                { name: 'Burung Hantu', specialFeature: 'Mata Tajam Malam', img: '<img src="asset/Burhan.png">' }
+            ];
+            const specialFeatures = [...new Set(animals.map(a => a.specialFeature))];
+
+            const level4Questions = [
+                { id: 1, question: "Hewan ini menggunakan 'Ekolokasi' untuk bergerak di kegelapan. Hewan apakah ini?", answerName: "Kelelawar", optionsNames: ["Bebek", "Kelelawar", "Cicak", "Unta"] },
+                { id: 2, question: "Ciri 'Kaki Berselaput' pada hewan berfungsi untuk...", answerName: "Berenang", optionsNames: ["Berlari Cepat", "Mencengkeram Mangsa", "Berenang", "Memanjat Pohon"] },
+                { id: 3, question: "Jika 🦎 mengubah warna tubuhnya, fungsi ciri khusus itu adalah...", answerName: "Menyamar", optionsNames: ["Terbang", "Melindungi Diri", "Menyamar", "Mencari Makan"] },
+                { id: 4, question: "Aku hidup dipadang gurun, aku dapat menyimpan air dan lemak untuk dapat kunikmati seaktu-waktu!", answerName: "Unta", optionsNames: ["Landak", "Bebek", "Unta", "Cicak"] },
+                { id: 5, question: "Ciri 'Kantong Tinta' pada 🦑 berfungsi untuk...", answerName: "Mengelabui Musuh", optionsNames: ["Mencari Makan", "Menyamar", "Melindungi Diri", "Mengelabui Musuh"] }
+            ];
+
+            const allScreens = document.querySelectorAll('.screen');
+            const inputScreen = document.getElementById('input-screen');
+            const startScreen = document.getElementById('start-screen');
+            const gameScreen = document.getElementById('game-screen');
+            const endScreen = document.getElementById('end-screen');
+            const startButton = document.getElementById('start-button');
+            const retryButton = document.getElementById('retry-button');
+            const levelDisplay = document.getElementById('level-display');
+            const timerDisplay = document.getElementById('timer-display');
+            const levelContents = document.querySelectorAll('.level-content');
+            const particlesDiv = document.getElementById('particles-js');
+
+            // --- INPUT LOGIC ---
+            const submitDataBtn = document.getElementById('submit-data-btn');
+            const studentNameInput = document.getElementById('student-name');
+            const schoolNameInput = document.getElementById('school-name');
+            const inputErrorMsg = document.getElementById('input-error');
+            const certificateBtn = document.getElementById('certificate-btn');
+            
+            let playerData = { name: "", school: "" };
+
+            submitDataBtn.addEventListener('click', () => {
+                const nameVal = studentNameInput.value.trim();
+                const schoolVal = schoolNameInput.value.trim();
+
+                if (nameVal === "" || schoolVal === "") {
+                    inputErrorMsg.style.display = "block";
+                    playSound(wrongSound);
+                } else {
+                    playerData.name = nameVal;
+                    playerData.school = schoolVal;
+                    inputErrorMsg.style.display = "none";
+                    playSound(correctSound);
+                    
+                    // Pindah ke menu utama
+                    switchScreen(startScreen);
+                    // Start music automatically on first interaction
+                    bgMusic.play().catch(e => console.log("Music autoplay waiting for interaction"));
+                }
+            });
+
+            // --- CERTIFICATE LOGIC ---
+            function generateCertificate() {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = 1000;
+                canvas.height = 700;
+
+                // Background
+                const gradient = ctx.createLinearGradient(0, 0, 1000, 700);
+                gradient.addColorStop(0, '#ffffff');
+                gradient.addColorStop(1, '#f0f8ff');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, 1000, 700);
+
+                // Border Style
+                ctx.lineWidth = 20;
+                ctx.strokeStyle = '#d9534f'; // Primary color
+                ctx.strokeRect(20, 20, 960, 660);
+                
+                ctx.lineWidth = 5;
+                ctx.strokeStyle = '#f0ad4e'; // Warning color (gold-ish)
+                ctx.strokeRect(45, 45, 910, 610);
+
+                // Decorations (Corner Circles)
+                function drawCorner(x, y) {
+                    ctx.beginPath();
+                    ctx.arc(x, y, 30, 0, Math.PI * 2);
+                    ctx.fillStyle = '#5cb85c';
+                    ctx.fill();
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                }
+                drawCorner(20, 20);
+                drawCorner(980, 20);
+                drawCorner(20, 680);
+                drawCorner(980, 680);
+
+                // Text Settings
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#333';
+
+                // Title
+                ctx.font = 'bold 50px Arial';
+                ctx.fillStyle = '#d9534f';
+                ctx.fillText('SERTIFIKAT KELULUSAN', 500, 150);
+
+                // Subtitle
+                ctx.font = '25px Arial';
+                ctx.fillStyle = '#555';
+                ctx.fillText('Diberikan dengan bangga kepada:', 500, 220);
+
+                // Student Name
+                ctx.font = 'bold italic 60px "Times New Roman"';
+                ctx.fillStyle = '#000';
+                ctx.fillText(playerData.name, 500, 300);
+
+                // Divider line
+                ctx.beginPath();
+                ctx.moveTo(300, 320);
+                ctx.lineTo(700, 320);
+                ctx.strokeStyle = '#999';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // School Name
+                ctx.font = 'bold 30px Arial';
+                ctx.fillStyle = '#333';
+                ctx.fillText(playerData.school, 500, 370);
+
+                // Achievement
+                ctx.font = '25px Arial';
+                ctx.fillStyle = '#555';
+                ctx.fillText('Telah berhasil menyelesaikan tantangan dalam', 500, 450);
+                
+                ctx.font = 'bold 35px Arial';
+                ctx.fillStyle = '#5bc0de';
+                ctx.fillText('Game Cerdas Ciri Khusus Hewan', 500, 500);
+
+                // Date
+                const date = new Date();
+                const dateString = date.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                ctx.font = '20px Arial';
+                ctx.fillStyle = '#777';
+                ctx.fillText(`Diberikan pada: ${dateString}`, 500, 580);
+
+                // Footer / Stamp simulation
+                ctx.font = 'italic 18px Arial';
+                ctx.fillText('Teruslah belajar dan cintai alam!', 500, 640);
+
+                // Trigger Download
+                const link = document.createElement('a');
+                link.download = `Sertifikat-${playerData.name.replace(/\s+/g, '_')}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }
+
+            certificateBtn.addEventListener('click', generateCertificate);
+
+            particlesDiv.style.display = 'none';
+
+            const petunjukBtn = document.getElementById('petunjuk-btn');
+            const tujuanBtn = document.getElementById('tujuan-btn');
+            const materiBtn = document.getElementById('materi-btn');
+            // BUTTON HAK CIPTA (DI MENU GRID)
+            const hakCiptaBtn = document.getElementById('hakcipta-btn');
+            
+            const petunjukModal = document.getElementById('petunjukModal');
+            const tujuanModal = document.getElementById('tujuanModal');
+            const hakCiptaModal = document.getElementById('hakCiptaModal');
+            const profilModal = document.getElementById('profilModal');
+            const materiModal = document.getElementById('materiModal');
+            const allModals = document.querySelectorAll('.modal-overlay');
+            
+            let currentLevel = 1, timer, timeLeft = 0, gameInterval;
+            let currentQuestionIndex = 0;
+            const levelTimers = { 1: 30, 2: 20, 3: 30, 4: 120 };
+            
+            function resetGameStates() {
+                clearInterval(timer);
+                clearInterval(gameInterval);
+                currentLevel = 1;
+                timeLeft = 0;
+                currentQuestionIndex = 0;
+                timerDisplay.textContent = 0;
+                timerDisplay.classList.remove('low-time');
+                levelDisplay.textContent = 1;
+                levelContents.forEach(el => el.style.display = 'none');
+                
+                // Clear areas
+                document.getElementById('rain-area').innerHTML = '';
+                document.getElementById('memory-grid').innerHTML = '';
+                document.getElementById('animals-column').innerHTML = '';
+                document.getElementById('features-column').innerHTML = '';
+                document.getElementById('level4-options-grid').innerHTML = '';
+                
+                document.querySelectorAll('.selected, .matched, .wrong').forEach(el => {
+                    el.classList.remove('selected', 'matched', 'wrong');
+                });
+            }
+
+            function switchScreen(screenToShow) {
+                allScreens.forEach(screen => screen.classList.add('hidden'));
+                screenToShow.classList.remove('hidden');
+                // Re-attach hover sounds to new elements if needed
+                setTimeout(attachHoverSound, 100);
+            }
+
+            function startGame() {
+                bgMusic.play().catch(e => console.log("Music autoplay prevented"));
+                musicToggleBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+                
+                resetGameStates();
+                particlesDiv.style.display = 'block';
+                switchScreen(gameScreen);
+                startLevel();
+            }
+
+            function startLevel() {
+                levelContents.forEach(el => el.style.display = 'none');
+                levelDisplay.textContent = currentLevel;
+                clearInterval(timer); 
+                clearInterval(gameInterval); 
+                timeLeft = levelTimers[currentLevel];
+                if (currentLevel === 1) setupLevel1();
+                else if (currentLevel === 2) setupLevel2();
+                else if (currentLevel === 3) setupLevel3();
+                else if (currentLevel === 4) setupLevel4();
+                
+                // Attach hover sounds to newly created elements
+                setTimeout(attachHoverSound, 500);
+                
+                resetTimer();
+                timer = setInterval(updateTimer, 1000);
+            }
+
+            function nextLevel() {
+                clearInterval(timer);
+                if (gameInterval) clearInterval(gameInterval);
+                currentLevel++;
+                playSound(correctSound); 
+                if (currentLevel > 4) {
+                    showEndScreen(true);
+                } else {
+                    startLevel();
+                }
+            }
+
+            function levelFailed(reason = 'Waktu Habis!') {
+                clearInterval(timer);
+                if (gameInterval) clearInterval(gameInterval);
+                playSound(wrongSound);
+                showEndScreen(false, reason);
+            }
+
+            function showEndScreen(isWin, reason) {
+                switchScreen(endScreen);
+                const endTitle = document.getElementById('end-title');
+                const endMessage = document.getElementById('end-message');
+                
+                if (isWin) {
+                    playSound(winnerSound);
+                    endTitle.textContent = "🎉 Hebat! Kamu Menang! 🎉";
+                    endMessage.textContent = "Kamu berhasil menyelesaikan semua level. Teruslah belajar!";
+                    certificateBtn.classList.remove('hidden'); // Show cert button
+                } else {
+                    endTitle.textContent = "😥 Coba Lagi, Yuk! 😥";
+                    endMessage.textContent = `Kamu belum berhasil di Level ${currentLevel}. Alasan: ${reason}`;
+                    certificateBtn.classList.add('hidden'); // Hide cert button
+                }
+            }
+
+            function resetTimer() {
+                timerDisplay.textContent = timeLeft;
+                timerDisplay.classList.remove('low-time');
+            }
+
+            function updateTimer() {
+                timeLeft--;
+                timerDisplay.textContent = timeLeft;
+                if (timeLeft <= 5) {
+                    timerDisplay.classList.add('low-time');
+                }
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    levelFailed();
+                }
+            }
+            
+            function shuffle(array) { return array.sort(() => Math.random() - 0.5); }
+
+            function animateFly(fromElement, toElement, callback) {
+                const flyingClone = fromElement.cloneNode(true);
+                flyingClone.style.position = 'absolute';
+                flyingClone.style.margin = 0;
+                flyingClone.style.zIndex = 100;
+                const startRect = fromElement.getBoundingClientRect();
+                const endRect = toElement.getBoundingClientRect();
+                const gameAreaRect = document.getElementById('game-area').getBoundingClientRect();
+                flyingClone.style.left = `${startRect.left - gameAreaRect.left}px`;
+                flyingClone.style.top = `${startRect.top - gameAreaRect.top}px`;
+                flyingClone.style.width = `${startRect.width}px`;
+                flyingClone.style.height = `${startRect.height}px`;
+                document.getElementById('game-area').appendChild(flyingClone);
+                requestAnimationFrame(() => {
+                    flyingClone.style.transition = 'all 0.6s ease-in-out';
+                    flyingClone.style.left = `${endRect.left - gameAreaRect.left + (endRect.width / 4)}px`;
+                    flyingClone.style.top = `${endRect.top - gameAreaRect.top + (endRect.height / 4)}px`;
+                    flyingClone.style.transform = 'scale(0.5)';
+                    flyingClone.style.opacity = '0';
+                });
+                setTimeout(() => {
+                    flyingClone.remove();
+                    if (callback) callback();
+                }, 600);
+            }
+            
+            // --- LEVEL LOGIC ---
+            function setupLevel1() {
+                document.getElementById('level-1').style.display = 'flex';
+                const animalsColumn = document.getElementById('animals-column');
+                const featuresColumn = document.getElementById('features-column');
+                animalsColumn.innerHTML = '';
+                featuresColumn.innerHTML = '';
+                const levelAnimals = shuffle([...animals]).slice(0, 4);
+                const levelFeatures = [...new Set(levelAnimals.map(a => a.specialFeature))];
+                levelAnimals.forEach(animal => {
+                    if (!levelFeatures.includes(animal.specialFeature)) {
+                        levelFeatures.push(animal.specialFeature);
+                    }
+                });
+                shuffle(levelAnimals).forEach(animal => animalsColumn.appendChild(createBox('animal-box', animal.name, animal.img, animal.specialFeature)));
+                shuffle(levelFeatures).forEach(feature => featuresColumn.appendChild(createBox('feature-box', feature, feature, feature)));
+                let selectedAnimal = null, selectedFeature = null, matchedCount = 0;
+                function createBox(type, name, content, specialFeature) {
+                    const div = document.createElement('div');
+                    div.className = type;
+                    div.innerHTML = content;
+                    div.dataset.name = name;
+                    div.dataset.specialFeature = specialFeature;
+                    div.addEventListener('click', onBoxClick);
+                    return div;
+                }
+                function onBoxClick(e) {
+                    const box = e.currentTarget;
+                    if (box.classList.contains('matched')) return;
+                    // Note: Suara hover sudah dihandle via mouseenter, klik tidak perlu suara atau bisa ditambah jika mau
+                    if (box.classList.contains('animal-box')) {
+                        if (selectedAnimal) selectedAnimal.classList.remove('selected');
+                        selectedAnimal = box;
+                    } else {
+                        if (selectedFeature) selectedFeature.classList.remove('selected');
+                        selectedFeature = box;
+                    }
+                    box.classList.add('selected');
+                    if (selectedAnimal && selectedFeature) {
+                        if (selectedAnimal.dataset.specialFeature === selectedFeature.dataset.specialFeature) {
+                            playSound(correctSound);
+                            const currentSelectedAnimal = selectedAnimal;
+                            const currentSelectedFeature = selectedFeature;
+                            currentSelectedAnimal.classList.remove('selected');
+                            currentSelectedFeature.classList.remove('selected');
+                            animateFly(currentSelectedAnimal, currentSelectedFeature, () => {
+                                currentSelectedAnimal.classList.add('matched');
+                                matchedCount++;
+                                if (matchedCount === levelAnimals.length) {
+                                    document.querySelectorAll('.feature-box').forEach(hb => hb.classList.add('matched'));
+                                    setTimeout(nextLevel, 500);
+                                }
+                            });
+                            selectedAnimal = null;
+                            selectedFeature = null;
+                        } else {
+                            playSound(wrongSound);
+                            const tempAnimal = selectedAnimal, tempFeature = selectedFeature;
+                            selectedAnimal = null; selectedFeature = null;
+                            tempAnimal.classList.add('wrong'); tempFeature.classList.add('wrong');
+                            setTimeout(() => {
+                                tempAnimal.classList.remove('selected', 'wrong');
+                                tempFeature.classList.remove('selected', 'wrong');
+                            }, 500);
+                        }
+                    }
+                }
+            }
+
+            function setupLevel2() {
+                document.getElementById('level-2').style.display = 'flex';
+                const rainArea = document.getElementById('rain-area');
+                rainArea.innerHTML = '';
+                const targetFeature = specialFeatures[Math.floor(Math.random() * specialFeatures.length)];
+                const targetDisplay = document.getElementById('target-feature-name');
+                targetDisplay.textContent = targetFeature;
+                function createFallingAnimal() {
+                    if (currentLevel !== 2) return;
+                    const animalData = animals[Math.floor(Math.random() * animals.length)];
+                    const animalDiv = document.createElement('div');
+                    animalDiv.className = 'falling-animal';
+                    animalDiv.innerHTML = animalData.img;
+                    animalDiv.style.left = `${Math.random() * (rainArea.offsetWidth - 120)}px`;
+                    animalDiv.style.animationDuration = `${Math.random() * 2 + 4}s`;
+                    
+                    // Attach hover sound to dynamic element
+                    animalDiv.addEventListener('mouseenter', () => playSound(hoverSound));
+                    
+                    animalDiv.addEventListener('click', () => {
+                        const isCorrect = animalData.specialFeature === targetFeature;
+                        if (isCorrect) {
+                            playSound(correctSound);
+                            animalDiv.classList.add('caught');
+                            setTimeout(nextLevel, 300);
+                        } else {
+                            levelFailed('Hewan itu tidak memiliki ciri khusus tersebut!');
+                        }
+                    }, { once: true });
+                    rainArea.appendChild(animalDiv);
+                    setTimeout(() => { 
+                        if (animalDiv && animalDiv.parentNode === rainArea) {
+                            animalDiv.remove(); 
+                        }
+                    }, 6000);
+                }
+                gameInterval = setInterval(createFallingAnimal, 900);
+            }
+
+            function setupLevel3() {
+                document.getElementById('level-3').style.display = 'flex';
+                const grid = document.getElementById('memory-grid');
+                grid.innerHTML = '';
+                const levelAnimals = shuffle([...animals]).slice(0, 4);
+                let cardItems = [];
+                levelAnimals.forEach(animal => {
+                    cardItems.push({ type: 'animal', content: animal.img, pairId: animal.name });
+                    cardItems.push({ type: 'feature', content: animal.specialFeature, pairId: animal.name });
+                });
+                let cardData = shuffle(cardItems);
+                let flippedCards = [], matchedPairs = 0, lockBoard = false;
+                cardData.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.dataset.pairId = item.pairId;
+                    card.dataset.type = item.type;
+                    card.innerHTML = `<div class="card-face card-front">?</div><div class="card-face card-back">${item.content}</div>`;
+                    grid.appendChild(card);
+                    card.addEventListener('click', () => {
+                        if (lockBoard || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+                        card.classList.add('flipped');
+                        flippedCards.push(card);
+                        if (flippedCards.length === 2) {
+                            lockBoard = true;
+                            const [card1, card2] = flippedCards;
+                            if (card1.dataset.pairId === card2.dataset.pairId) {
+                                playSound(correctSound);
+                                card1.classList.add('matched');
+                                card2.classList.add('matched');
+                                matchedPairs++;
+                                flippedCards = [];
+                                setTimeout(() => {
+                                    const checkmarkSVG = '<svg viewBox="0 0 52 52"><path fill="none" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" d="M14 27l5.9 4.9L38.1 16"/></svg>';
+                                    card1.querySelector('.card-front').innerHTML = checkmarkSVG;
+                                    card2.querySelector('.card-front').innerHTML = checkmarkSVG;
+                                    if (matchedPairs !== levelAnimals.length) {
+                                        lockBoard = false;
+                                    }
+                                }, 800);
+                                if (matchedPairs === levelAnimals.length) {
+                                    setTimeout(nextLevel, 1600);
+                                }
+                            } else {
+                                playSound(wrongSound);
+                                setTimeout(() => {
+                                    card1.classList.remove('flipped');
+                                    card2.classList.remove('flipped');
+                                    flippedCards = [];
+                                    lockBoard = false;
+                                }, 1000);
+                            }
+                        }
+                    });
+                });
+            }
+
+            function setupLevel4() {
+                document.getElementById('level-4').style.display = 'flex';
+                const questionTextElement = document.getElementById('level4-question-text');
+                const optionsGridElement = document.getElementById('level4-options-grid');
+                optionsGridElement.innerHTML = '';
+                if (currentQuestionIndex >= level4Questions.length) {
+                    nextLevel(); 
+                    return;
+                }
+                const currentQuestion = level4Questions[currentQuestionIndex];
+                questionTextElement.textContent = currentQuestion.question;
+                const shuffledOptionsNames = shuffle([...currentQuestion.optionsNames]);
+                shuffledOptionsNames.forEach(optionName => {
+                    const button = document.createElement('button');
+                    button.className = 'option-btn';
+                    const animalMatch = animals.find(anim => anim.name === optionName);
+                    if (animalMatch) {
+                        button.innerHTML = animalMatch.img + `<span style="font-size: 0.9em; margin-top: 5px;">${optionName}</span>`;
+                    } else {
+                        button.textContent = optionName;
+                    }
+                    button.dataset.actualAnswer = optionName;
+                    button.addEventListener('click', () => {
+                        handleTimeAnswer(button, button.dataset.actualAnswer, currentQuestion.answerName);
+                    });
+                    optionsGridElement.appendChild(button);
+                });
+            }
+
+            function openModal(modal) {
+                modal.classList.remove('hidden');
+            }
+            function closeModal() {
+                allModals.forEach(modal => {
+                    modal.classList.add('hidden');
+                });
+            }
+
+            // Init Hover Sound for main menu buttons
+            attachHoverSound();
+
+            petunjukBtn.addEventListener('click', () => openModal(petunjukModal));
+            tujuanBtn.addEventListener('click', () => openModal(tujuanModal));
+            materiBtn.addEventListener('click', () => openModal(materiModal));
+            
+            // LISTENER BARU YANG BENAR SESUAI PERMINTAAN
+            hakCiptaBtn.addEventListener('click', () => openModal(hakCiptaModal));
+            profileToggleBtn.addEventListener('click', () => openModal(profilModal));
+            
+            allModals.forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('modal-overlay') || e.target.classList.contains('close-modal')) {
+                        closeModal();
+                    }
+                });
+            });
+
+            startButton.addEventListener('click', startGame);
+            retryButton.addEventListener('click', () => { startGame(); });
+
+            document.querySelector('#end-screen a').addEventListener('click', (event) => {
+                event.preventDefault();
+                resetGameStates();
+                particlesDiv.style.display = 'none';
+                switchScreen(startScreen);
+            });
+        });
+    </script>
+    <script>
+        // ... (Script Background Animal Floating tetap sama, tidak berubah) ...
+        const animalContainer = document.getElementById('animal-background-container');
+        const animalsBg = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔', '🐧', '🐦', '🐤', '🦆', '🦅', '🦉', '🦇', '🐺', '🐗', '🐴', '🦄', '🐝', '🐛', '🦋', '🐌', '🐞', '🐜', '🦟', '🦗', '🐢', '🐍', '🦎', '🦖', '🦕', '🐙', '🦑', '🦐', '🦞', '🦀', '🐡', '🐠', '🐟', '🐬', '🐳'];  
+        const colors = ['#FF9AA2', '#FFB7B2', '#FFDAC1', '#E2F0CB', '#B5EAD7', '#C7CEEA', '#F8B195', '#F67280', '#C06C84', '#6C5B7B', '#355C7D', '#A8E6CE', '#DCEDC1', '#FFD3B6', '#FFAAA5', '#FF8B94'];  
+        
+        function getRandomPosition() { return { x: Math.random() * 100, y: Math.random() * 100 }; }  
+        
+        // Clone untuk input screen background
+        const animalBgInput = document.getElementById('animal-bg-input');
+        
+        function createFloatingAnimals(container) {
+            if(!container) return;
+            for(let i = 0; i < 50; i++) {  
+                const animal = document.createElement('div');  
+                animal.className = 'animal';  
+                const size = Math.random() * 30 + 20;  
+                animal.style.fontSize = `${size}px`;  
+                animal.textContent = animalsBg[Math.floor(Math.random() * animalsBg.length)];  
+                animal.style.color = colors[Math.floor(Math.random() * colors.length)];  
+                const pos = getRandomPosition();  
+                animal.style.setProperty('--pos-y', pos.y);  
+                animal.style.setProperty('--start-x', `${pos.x}vw`);  
+                animal.style.setProperty('--float-x', (Math.random() - 0.5) * 100);  
+                animal.style.setProperty('--float-y', (Math.random() - 0.5) * 50);  
+                animal.style.setProperty('--rotation', (Math.random() - 0.5) * 360);  
+                const startScale = Math.random() * 0.5 + 0.5;  
+                animal.style.setProperty('--scale-start', startScale);  
+                animal.style.setProperty('--scale-mid', startScale + 0.3);  
+                animal.style.animationDelay = `${Math.random() * 10}s`;  
+                animal.style.animationDuration = `${Math.random() * 20 + 10}s`;  
+                animal.style.opacity = Math.random() * 0.7 + 0.3;  
+                container.appendChild(animal);  
+            }
+        }
+        
+        createFloatingAnimals(animalContainer);
+        createFloatingAnimals(animalBgInput);
+    </script>
+</body>
+</html>
